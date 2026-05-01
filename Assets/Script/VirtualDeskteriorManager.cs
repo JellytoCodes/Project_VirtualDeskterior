@@ -23,6 +23,7 @@ public class VirtualDeskteriorManager : MonoBehaviour
         mainCamera.clearFlags = CameraClearFlags.SolidColor;
         mainCamera.backgroundColor = Color.white;
 
+        Screen.fullScreenMode = FullScreenMode.Windowed;
         Screen.fullScreen = false;
     }
 
@@ -39,6 +40,7 @@ public class VirtualDeskteriorManager : MonoBehaviour
             arCameraManager.enabled = true;
         }
 
+        Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
         Screen.fullScreen = true;
     }
 
@@ -55,6 +57,7 @@ public class VirtualDeskteriorManager : MonoBehaviour
         }
         mainCamera.clearFlags = CameraClearFlags.SolidColor;
 
+        Screen.fullScreenMode = FullScreenMode.Windowed;
         Screen.fullScreen = false;
     }
 }
