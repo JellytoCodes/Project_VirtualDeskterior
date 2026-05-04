@@ -10,6 +10,7 @@ public class ProductData
     public Texture2D productImage;
     public GameObject modelPrefab;
     public bool isAvailable;
+    public float spawnScale = 1f; 
 }
 
 public class ProductItemUI : MonoBehaviour
@@ -35,7 +36,8 @@ public class ProductItemUI : MonoBehaviour
             previewButton.interactable = true;
             buyButton.interactable = true;
 
-            previewButton.onClick.AddListener(() => manager.OnClickPlacementButton(data.modelPrefab));
+            previewButton.onClick.RemoveAllListeners();
+            previewButton.onClick.AddListener(() => manager.OnClickPlacementButton(data.modelPrefab, data.spawnScale));
         }
         else
         {

@@ -1,61 +1,66 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.AR;
 using UnityEngine.XR.ARFoundation;
 
 public class VirtualDeskteriorManager : MonoBehaviour
 {
     public GameObject shoppingUIPanel;
     public GameObject arUIPanel;
-    public ARPlacementInteractable placementInteractable;
-    
-    public ARCameraManager arCameraManager; 
     public Camera mainCamera;
+
+    private ARSession arSession; 
+    private GameObject currentSpawnedObject;
 
     private void Start()
     {
-        placementInteractable.enabled = false;
+        arSession = FindFirstObjectByType<ARSession>();
+
         arUIPanel.SetActive(false);
+        shoppingUIPanel.SetActive(true);
 
-        if (arCameraManager != null)
+        if (arSession != null)
         {
-            arCameraManager.enabled = false;
+            arSession.enabled = false;
         }
-        mainCamera.clearFlags = CameraClearFlags.SolidColor;
-        mainCamera.backgroundColor = Color.white;
-
-        Screen.fullScreenMode = FullScreenMode.Windowed;
-        Screen.fullScreen = false;
     }
 
-    public void OnClickPlacementButton(GameObject modelPrefab)
+    public void OnClickPlacementButton(GameObject modelPrefab, float spawnScale)
     {
-        placementInteractable.placementPrefab = modelPrefab;
         shoppingUIPanel.SetActive(false);
         arUIPanel.SetActive(true);
-        placementInteractable.enabled = true;
 
-        mainCamera.clearFlags = CameraClearFlags.Color;
-        if (arCameraManager != null)
+        if (arSession != null)
         {
-            arCameraManager.enabled = true;
+            arSession.enabled = true;
         }
 
-        Screen.fullScreen = true;
+        if (currentSpawnedObject == null)
+        {
+            Vector3 spawnPos = mainCamera.transform.position + mainCamera.transform.forward * 1.0f;
+            spawnPos.y -= 0.2f; 
+            
+            Quaternion spawnRot = Quaternion.LookRotation(mainCamera.transform.position - spawnPos);
+            spawnRot.x = 0; spawnRot.z = 0; 
+
+            currentSpawnedObject = Instantiate(modelPrefab, spawnPos, spawnRot);
+            
+            currentSpawnedObject.transform.localScale = Vector3.one * spawnScale;
+        }
     }
 
     public void ReturnToShoppingUI()
     {
-        placementInteractable.enabled = false;
-        placementInteractable.placementPrefab = null;
         arUIPanel.SetActive(false);
         shoppingUIPanel.SetActive(true);
 
-        if (arCameraManager != null)
+        if (arSession != null)
         {
-            arCameraManager.enabled = false;
+            arSession.enabled = false;
         }
-        mainCamera.clearFlags = CameraClearFlags.SolidColor;
 
-        Screen.fullScreen = false;
+        if (currentSpawnedObject != null)
+        {
+            Destroy(currentSpawnedObject);
+            currentSpawnedObject = null;
+        }
     }
 }

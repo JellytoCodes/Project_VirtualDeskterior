@@ -774,7 +774,6 @@ GameObject:
   - component: {fileID: 604121302}
   - component: {fileID: 604121301}
   - component: {fileID: 604121300}
-  - component: {fileID: 604121299}
   m_Layer: 0
   m_Name: VirtualDeskteriorManager
   m_TagString: Untagged
@@ -782,93 +781,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &604121299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 604121298}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 286544fc77b95d34ea16384e070b6da7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.AR.ARPlacementInteractable
-  m_InteractionManager: {fileID: 0}
-  m_Colliders: []
-  m_InteractionLayers:
-    m_Bits: 1
-  m_DistanceCalculationMode: 1
-  m_SelectMode: 0
-  m_FocusMode: 1
-  m_CustomReticle: {fileID: 0}
-  m_AllowGazeInteraction: 0
-  m_AllowGazeSelect: 0
-  m_OverrideGazeTimeToSelect: 0
-  m_GazeTimeToSelect: 0.5
-  m_OverrideTimeToAutoDeselectGaze: 0
-  m_TimeToAutoDeselectGaze: 3
-  m_AllowGazeAssistance: 0
-  m_FirstHoverEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_LastHoverExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_HoverEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_HoverExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FirstSelectEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_LastSelectExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_SelectEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_SelectExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FirstFocusEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_LastFocusExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FocusEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FocusExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Activated:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Deactivated:
-    m_PersistentCalls:
-      m_Calls: []
-  m_StartingHoverFilters: []
-  m_StartingSelectFilters: []
-  m_StartingInteractionStrengthFilters: []
-  m_AutoFindParentInteractableInHierarchy: 0
-  m_ParentInteractableObject: {fileID: 0}
-  m_ARSessionOrigin: {fileID: 0}
-  m_XROrigin: {fileID: 0}
-  m_ExcludeUITouches: 1
-  m_PlacementPrefab: {fileID: 0}
-  m_FallbackLayerMask:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ObjectPlaced:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnObjectPlaced:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &604121300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -888,8 +800,9 @@ MonoBehaviour:
   - productName: "\uD654\uBD84 1\uD638"
     description: "\uC791\uC740 \uD654\uBD84\uC774\uB2E4."
     productImage: {fileID: 0}
-    modelPrefab: {fileID: 0}
+    modelPrefab: {fileID: 919132149155446097, guid: 3fa0e46c67b07324ab68f136373e9746, type: 3}
     isAvailable: 1
+    spawnScale: 500
 --- !u!114 &604121301
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -904,8 +817,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VirtualDeskteriorManager
   shoppingUIPanel: {fileID: 714345911}
   arUIPanel: {fileID: 1246483221}
-  placementInteractable: {fileID: 604121299}
-  arCameraManager: {fileID: 118092863}
   mainCamera: {fileID: 118092865}
 --- !u!4 &604121302
 Transform:
