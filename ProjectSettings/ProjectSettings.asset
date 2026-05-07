@@ -68,7 +68,7 @@ PlayerSettings:
   disableDepthAndStencilBuffers: 0
   androidStartInFullscreen: 0
   androidRenderOutsideSafeArea: 0
-  androidUseSwappy: 0
+  androidUseSwappy: 1
   androidDisplayOptions: 1
   androidBlitType: 0
   androidResizeableActivity: 1
@@ -930,7 +930,7 @@ PlayerSettings:
   qnxGraphicConfPath: 
   apiCompatibilityLevel: 6
   captureStartupLogs: {}
-  activeInputHandler: 1
+  activeInputHandler: 2
   windowsGamepadBackendHint: 0
   enableDirectStorage: 0
   cloudProjectId: 

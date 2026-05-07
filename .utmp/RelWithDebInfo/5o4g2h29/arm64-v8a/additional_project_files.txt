@@ -15,3 +15,4 @@ C:\Unity\VirtualDeskterior\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\sr
 C:\Unity\VirtualDeskterior\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\UnityToGAConfigurationCallbacks.h
 C:\Unity\VirtualDeskterior\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\UnityToGAKeyEventCallbacks.h
 C:\Unity\VirtualDeskterior\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\UnityToGAMotionEventCallbacks.h
+C:\Unity\VirtualDeskterior\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\FramePacing\UnitySwappyWrapper.h

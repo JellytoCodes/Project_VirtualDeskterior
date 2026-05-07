@@ -1,7 +1,14 @@
 fileFormatVersion: 2
 guid: 3fa0e46c67b07324ab68f136373e9746
+AssetOrigin:
+  serializedVersion: 1
+  productId: 348260
+  packageName: Interiors FREE - Cozy Cartoon Pack
+  packageVersion: 1.0
+  assetPath: Assets/Mnostva_Art/Meshes/Plant_2.fbx
+  uploadId: 828246
 ModelImporter:
-  serializedVersion: 21300
+  serializedVersion: 24200
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -21,8 +28,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 1
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -40,11 +45,12 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 0.5
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -62,6 +68,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -94,7 +103,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
+    globalScale: 0.005
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
@@ -105,15 +114,9 @@ ModelImporter:
   humanoidOversampling: 1
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 0
   remapMaterialsIfMaterialImportModeIsNone: 0
   additionalBone: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 348260
-  packageName: Interiors FREE - Cozy Cartoon Pack
-  packageVersion: 1.0
-  assetPath: Assets/Mnostva_Art/Meshes/Plant_2.fbx
-  uploadId: 828246
