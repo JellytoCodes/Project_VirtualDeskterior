@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: MasterProductDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::ProductDatabaseSO
+  productList:
+  - productID: PROPS_0001
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
+  - productID: PROPS_0002
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
+  - productID: PROPS_0003
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
+  - productID: PROPS_0004
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
+  - productID: PROPS_0005
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
+  - productID: PROPS_0006
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
+  - productID: PROPS_0007
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
+  - productID: PROPS_0008
+    productName: "\uD654\uBD84"
+    price: \220,000
+    description: "\u3134\u3141\u3139\u3134\u3139\u3147\u3134\u3141\u3139\u3139"
+    productImage: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+    arModelPrefab: {fileID: 6587345871612521942, guid: e31015a6cb5368449a94f0d54981ce03, type: 3}
