@@ -1,37 +1,173 @@
-using UnityEngine;
-using UnityEngine.XR.ARFoundation;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.XR.ARFoundation;
 
 public class ARInteractionManager : MonoBehaviour
 {
+    [Header("Core")]
     public Camera mainCamera;
-    private ARSession arSession;
-    private GameObject currentSpawnedObject;
+    public bool editorPreviewMode = true;
 
-    // --- 상호작용 상태 변수 ---
-    private bool isDragging = false;
-    private float currentDragDepth; 
-    private float initialPinchDistance;
-    private Vector3 initialScale;
-    
-    public float rotationSpeed = 0.5f; 
+    [Header("Object Interaction")]
+    public float rotationSpeed = 0.5f;
     public float minScale = 0.1f;
     public float maxScale = 5.0f;
 
+    private ARSession arSession;
+    private GameObject currentSpawnedObject;
+
+    private bool isDragging = false;
+    private float currentDragDepth;
+    private float initialPinchDistance;
+    private Vector3 initialScale;
+
+    private void Awake()
+    {
+        ResolveCamera();
+        arSession = FindAnyObjectByType<ARSession>();
+    }
+
     private void Start()
     {
-        arSession = FindFirstObjectByType<ARSession>();
         StopARSession();
     }
 
-    void Update()
+    private void Update()
     {
-        // 스폰된 오브젝트가 없거나 AR 세션이 꺼져있으면 작동안함
-        if (currentSpawnedObject == null || arSession == null || !arSession.enabled) return;
+        if (currentSpawnedObject == null)
+            return;
 
+        ResolveCamera();
+        if (mainCamera == null)
+            return;
+
+#if UNITY_EDITOR
+        if (editorPreviewMode)
+        {
+            HandleEditorMouseInput();
+            return;
+        }
+#endif
+
+        if (arSession == null || !arSession.enabled)
+            return;
+
+        HandleTouchInput();
+    }
+
+    public void StartARPlacement(GameObject modelPrefab, float spawnScale)
+    {
+        StopCoroutine(nameof(ARSessionRoutine));
+        StartCoroutine(ARSessionRoutine(modelPrefab, spawnScale));
+    }
+
+    private IEnumerator ARSessionRoutine(GameObject modelPrefab, float spawnScale)
+    {
+#if UNITY_EDITOR
+        if (editorPreviewMode)
+        {
+            SpawnModel(modelPrefab, spawnScale);
+            Debug.Log("[ARInteractionManager] Editor Preview Mode: 모델을 카메라 앞에 생성했습니다.");
+            yield break;
+        }
+#endif
+
+        if (arSession != null)
+        {
+            arSession.enabled = true;
+
+            while (ARSession.state != ARSessionState.SessionTracking)
+                yield return null;
+        }
+
+        SpawnModel(modelPrefab, spawnScale);
+    }
+
+    private void SpawnModel(GameObject modelPrefab, float spawnScale)
+    {
+        ResolveCamera();
+
+        if (mainCamera == null)
+        {
+            Debug.LogError("[ARInteractionManager] Main Camera를 찾지 못했습니다.");
+            return;
+        }
+
+        if (currentSpawnedObject != null)
+        {
+            Destroy(currentSpawnedObject);
+            currentSpawnedObject = null;
+        }
+
+        Vector3 spawnPos = mainCamera.transform.position + mainCamera.transform.forward * 1.5f;
+        spawnPos.y -= 0.25f;
+
+        Quaternion spawnRot = Quaternion.Euler(0f, mainCamera.transform.eulerAngles.y + 180f, 0f);
+
+        if (modelPrefab != null)
+        {
+            currentSpawnedObject = Instantiate(modelPrefab, spawnPos, spawnRot);
+        }
+        else
+        {
+            currentSpawnedObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            currentSpawnedObject.name = "AR Preview Placeholder Cube";
+            currentSpawnedObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
+            Debug.LogWarning("[ARInteractionManager] 선택 상품의 arModelPrefab이 비어 있어 테스트용 큐브를 생성했습니다.");
+        }
+
+        float safeScale = spawnScale > 0f ? spawnScale : 0.3f;
+        currentSpawnedObject.transform.localScale = Vector3.one * safeScale;
+        currentSpawnedObject.SetActive(true);
+
+        AddMissingColliders(currentSpawnedObject);
+        FocusCameraForEditorPreview();
+
+        Debug.Log($"[ARInteractionManager] 생성 완료: {currentSpawnedObject.name} / position={currentSpawnedObject.transform.position} / scale={currentSpawnedObject.transform.localScale}");
+    }
+
+    private void ResolveCamera()
+    {
+        if (mainCamera != null)
+            return;
+
+        mainCamera = Camera.main;
+
+        if (mainCamera == null)
+            mainCamera = FindAnyObjectByType<Camera>();
+    }
+
+    private void FocusCameraForEditorPreview()
+    {
+#if UNITY_EDITOR
+        if (!editorPreviewMode || currentSpawnedObject == null || mainCamera == null)
+            return;
+
+        mainCamera.transform.LookAt(currentSpawnedObject.transform.position + Vector3.up * 0.1f);
+#endif
+    }
+
+    private void AddMissingColliders(GameObject root)
+    {
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+
+        foreach (Renderer renderer in renderers)
+        {
+            renderer.enabled = true;
+
+            if (renderer.GetComponent<Collider>() == null)
+                renderer.gameObject.AddComponent<BoxCollider>();
+        }
+
+        if (renderers.Length == 0 && root.GetComponent<Collider>() == null)
+            root.AddComponent<BoxCollider>();
+    }
+
+    private void HandleTouchInput()
+    {
         int touchCount = Input.touchCount;
-        
+
         if (touchCount == 0)
         {
             isDragging = false;
@@ -40,13 +176,9 @@ public class ARInteractionManager : MonoBehaviour
 
         Touch touch = Input.GetTouch(0);
 
-        // 유니티 UI(투명 패널, 버튼 등) 터치 시 3D 조작 무시
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
-        {
             return;
-        }
 
-        // --- 1. 한 손가락 터치: 이동 ---
         if (touchCount == 1)
         {
             if (touch.phase == TouchPhase.Began)
@@ -71,10 +203,9 @@ public class ARInteractionManager : MonoBehaviour
                 isDragging = false;
             }
         }
-        // --- 2. 두 손가락 터치: 회전 및 사이즈 조절 ---
         else if (touchCount == 2)
         {
-            isDragging = false; 
+            isDragging = false;
 
             Touch touch1 = Input.GetTouch(1);
             Vector2 curTouch0Pos = touch.position;
@@ -89,71 +220,74 @@ public class ARInteractionManager : MonoBehaviour
             }
             else if (touch.phase == TouchPhase.Moved || touch1.phase == TouchPhase.Moved)
             {
-                // 회전 적용
                 Vector2 prevDir = prevTouch0Pos - prevTouch1Pos;
                 Vector2 curDir = curTouch0Pos - curTouch1Pos;
+
                 if (prevDir != Vector2.zero && curDir != Vector2.zero)
                 {
                     float angle = Vector2.SignedAngle(prevDir, curDir);
                     currentSpawnedObject.transform.Rotate(Vector3.up, angle * rotationSpeed, Space.World);
                 }
 
-                // 스케일 적용
                 float curPinchDistance = Vector2.Distance(curTouch0Pos, curTouch1Pos);
                 if (initialPinchDistance > 0)
                 {
                     float scaleFactor = curPinchDistance / initialPinchDistance;
-                    Vector3 newScale = initialScale * scaleFactor;
-                    
-                    newScale.x = Mathf.Clamp(newScale.x, minScale, maxScale);
-                    newScale.y = Mathf.Clamp(newScale.y, minScale, maxScale);
-                    newScale.z = Mathf.Clamp(newScale.z, minScale, maxScale);
-                    
-                    currentSpawnedObject.transform.localScale = newScale;
+                    SetObjectScale(initialScale * scaleFactor);
                 }
             }
         }
     }
 
-    public void StartARPlacement(GameObject modelPrefab, float spawnScale)
+#if UNITY_EDITOR
+    private void HandleEditorMouseInput()
     {
-        StartCoroutine(ARSessionRoutine(modelPrefab, spawnScale));
-    }
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
 
-    private IEnumerator ARSessionRoutine(GameObject modelPrefab, float spawnScale)
-    {
-        if (arSession != null) arSession.enabled = true;
-
-        while (ARSession.state != ARSessionState.SessionTracking)
+        float scroll = Input.mouseScrollDelta.y;
+        if (Mathf.Abs(scroll) > 0.01f)
         {
-            yield return null;
+            Vector3 scaleDelta = currentSpawnedObject.transform.localScale + Vector3.one * scroll * 0.03f;
+            SetObjectScale(scaleDelta);
         }
 
-        SpawnModel(modelPrefab, spawnScale);
-    }
-
-    private void SpawnModel(GameObject modelPrefab, float spawnScale)
-    {
-        if (currentSpawnedObject == null)
+        if (Input.GetMouseButtonDown(0))
         {
-            Vector3 spawnPos = mainCamera.transform.position + mainCamera.transform.forward * 1.0f;
-            spawnPos.y -= 0.2f;
-
-            Quaternion spawnRot = Quaternion.LookRotation(mainCamera.transform.position - spawnPos);
-            spawnRot.x = 0; spawnRot.z = 0;
-
-            currentSpawnedObject = Instantiate(modelPrefab, spawnPos, spawnRot);
-            currentSpawnedObject.transform.localScale = Vector3.one * spawnScale;
-
-            Renderer[] renderers = currentSpawnedObject.GetComponentsInChildren<Renderer>();
-            foreach (Renderer renderer in renderers)
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                if (renderer.gameObject.GetComponent<Collider>() == null)
+                if (hit.collider.gameObject == currentSpawnedObject || hit.collider.transform.IsChildOf(currentSpawnedObject.transform))
                 {
-                    renderer.gameObject.AddComponent<BoxCollider>();
+                    isDragging = true;
+                    currentDragDepth = mainCamera.WorldToScreenPoint(currentSpawnedObject.transform.position).z;
                 }
             }
         }
+
+        if (Input.GetMouseButton(0) && isDragging)
+        {
+            Vector3 newPos = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, currentDragDepth));
+            currentSpawnedObject.transform.position = newPos;
+        }
+
+        if (Input.GetMouseButtonUp(0))
+            isDragging = false;
+
+        if (Input.GetMouseButton(1))
+        {
+            float deltaX = Input.GetAxis("Mouse X");
+            currentSpawnedObject.transform.Rotate(Vector3.up, -deltaX * 3.0f, Space.World);
+        }
+    }
+#endif
+
+    private void SetObjectScale(Vector3 targetScale)
+    {
+        targetScale.x = Mathf.Clamp(targetScale.x, minScale, maxScale);
+        targetScale.y = Mathf.Clamp(targetScale.y, minScale, maxScale);
+        targetScale.z = Mathf.Clamp(targetScale.z, minScale, maxScale);
+        currentSpawnedObject.transform.localScale = targetScale;
     }
 
     public void StopARSession()
@@ -169,5 +303,7 @@ public class ARInteractionManager : MonoBehaviour
             Destroy(currentSpawnedObject);
             currentSpawnedObject = null;
         }
+
+        isDragging = false;
     }
 }
