@@ -59,7 +59,7 @@ public class HomeUIManager : MonoBehaviour
             : "미니멀 데스크테리어";
 
         if (bannerTitleText != null)
-            JelliMetaUIRuntimeBuilder.ConfigureText(bannerTitleText, title, 54f, FontStyles.Bold, JelliMetaUIRuntimeBuilder.Color32(17, 24, 39), TextAlignmentOptions.Left);
+            JelliMetaUIRuntimeBuilder.ConfigureText(bannerTitleText, title, 44f, FontStyles.Bold, JelliMetaUIRuntimeBuilder.Color32(17, 24, 39), TextAlignmentOptions.Left);
 
         if (bannerDetailButton != null)
         {
@@ -72,7 +72,7 @@ public class HomeUIManager : MonoBehaviour
 
             TextMeshProUGUI label = bannerDetailButton.GetComponentInChildren<TextMeshProUGUI>(true);
             if (label != null)
-                JelliMetaUIRuntimeBuilder.ConfigureText(label, "자세히 보기", 28f, FontStyles.Bold, Color.white, TextAlignmentOptions.Center);
+                JelliMetaUIRuntimeBuilder.ConfigureText(label, "자세히 보기", 24f, FontStyles.Bold, Color.white, TextAlignmentOptions.Center);
         }
     }
 
@@ -156,48 +156,96 @@ public class HomeUIManager : MonoBehaviour
 
         RectTransform homeRect = transform as RectTransform;
         JelliMetaUIRuntimeBuilder.SetStretch(homeRect, 0f, 0f, 0f, 0f);
-
-        Image panelBg = GetComponent<Image>();
-        if (panelBg != null)
-            panelBg.color = Color.white;
+        ForceWhiteBackground(gameObject);
 
         Transform header = transform.Find("Header");
         if (header != null)
         {
-            JelliMetaUIRuntimeBuilder.SetTop(header as RectTransform, 0f, 0f, 0f, 190f);
-            Image headerBg = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(header.gameObject);
-            headerBg.color = Color.white;
+            // Header는 Figma 기준으로 앱명 + 검색바가 한 블록 안에 들어가야 한다.
+            // 기존 Header의 VerticalLayoutGroup이 자식 좌표를 다시 밀어버리고 있었으므로 수동 배치로 전환한다.
+            JelliMetaUIRuntimeBuilder.SetTop(header as RectTransform, 0f, 0f, 0f, 178f);
+            ForceWhiteBackground(header.gameObject);
+
+            VerticalLayoutGroup headerLayout = header.GetComponent<VerticalLayoutGroup>();
+            if (headerLayout != null)
+                headerLayout.enabled = false;
+
+            ContentSizeFitter headerFitter = header.GetComponent<ContentSizeFitter>();
+            if (headerFitter != null)
+                headerFitter.enabled = false;
         }
 
-        TextMeshProUGUI logo = transform.Find("Header/Text_Logo")?.GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI logo = GetOrCreateHeaderLogo(header);
         if (logo != null)
         {
-            JelliMetaUIRuntimeBuilder.SetFixed(logo.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(32f, -22f), new Vector2(500f, 60f));
-            JelliMetaUIRuntimeBuilder.ConfigureText(logo, "JelliMeta", 46f, FontStyles.Bold, Color.black, TextAlignmentOptions.Left);
+            LayoutElement logoLayout = JelliMetaUIRuntimeBuilder.EnsureComponent<LayoutElement>(logo.gameObject);
+            logoLayout.ignoreLayout = true;
+
+            JelliMetaUIRuntimeBuilder.SetFixed(
+                logo.rectTransform,
+                new Vector2(0f, 1f),
+                new Vector2(0f, 1f),
+                new Vector2(48f, -22f),
+                new Vector2(520f, 54f)
+            );
+
+            JelliMetaUIRuntimeBuilder.ConfigureText(logo, "JelliMeta", 40f, FontStyles.Normal, Color.black, TextAlignmentOptions.Left);
+            logo.gameObject.SetActive(true);
+            logo.transform.SetAsLastSibling();
         }
 
-        Transform search = transform.Find("Header/SearchBar");
+        Transform search = header != null ? header.Find("SearchBar") : transform.Find("Header/SearchBar");
         if (search != null)
         {
-            JelliMetaUIRuntimeBuilder.SetTop(search as RectTransform, 32f, 32f, 104f, 66f);
+            LayoutElement searchLayout = JelliMetaUIRuntimeBuilder.EnsureComponent<LayoutElement>(search.gameObject);
+            searchLayout.ignoreLayout = true;
+
+            // 기존보다 위로 올려 로고와 같은 Header 블록 안에 정렬한다.
+            JelliMetaUIRuntimeBuilder.SetTop(search as RectTransform, 48f, 48f, 82f, 64f);
             Image searchBg = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(search.gameObject);
             searchBg.color = JelliMetaUIRuntimeBuilder.Color32(249, 250, 251);
+            searchBg.raycastTarget = true;
 
             TextMeshProUGUI placeholder = search.Find("Text Area/Placeholder")?.GetComponent<TextMeshProUGUI>();
             if (placeholder != null)
-                JelliMetaUIRuntimeBuilder.ConfigureText(placeholder, "가구, 소품 검색", 28f, FontStyles.Normal, JelliMetaUIRuntimeBuilder.Color32(156, 163, 175), TextAlignmentOptions.Left);
+                JelliMetaUIRuntimeBuilder.ConfigureText(placeholder, "가구, 소품 검색", 27f, FontStyles.Normal, JelliMetaUIRuntimeBuilder.Color32(107, 114, 128), TextAlignmentOptions.Left);
+
+            search.SetSiblingIndex(0);
         }
+
+        // SearchBar를 먼저 그리고, Text_Logo를 마지막에 그려 Z Order를 확실히 위로 둔다.
+        if (logo != null)
+            logo.transform.SetAsLastSibling();
 
         Transform mainScroll = transform.Find("MainScrollArea");
         if (mainScroll != null)
-            JelliMetaUIRuntimeBuilder.SetStretch(mainScroll as RectTransform, 0f, 0f, 190f, 120f);
+        {
+            JelliMetaUIRuntimeBuilder.SetStretch(mainScroll as RectTransform, 0f, 0f, 178f, 120f);
+            ForceWhiteBackground(mainScroll.gameObject);
+        }
+
+        Transform viewport = transform.Find("MainScrollArea/Viewport");
+        if (viewport != null)
+            ForceWhiteBackground(viewport.gameObject);
 
         Transform content = transform.Find("MainScrollArea/Viewport/Content");
         if (content != null)
         {
+            ForceWhiteBackground(content.gameObject);
+
+            RectTransform contentRect = content as RectTransform;
+            if (contentRect != null)
+            {
+                contentRect.anchorMin = new Vector2(0f, 1f);
+                contentRect.anchorMax = new Vector2(1f, 1f);
+                contentRect.pivot = new Vector2(0.5f, 1f);
+                contentRect.offsetMin = new Vector2(0f, contentRect.offsetMin.y);
+                contentRect.offsetMax = new Vector2(0f, contentRect.offsetMax.y);
+            }
+
             VerticalLayoutGroup layout = JelliMetaUIRuntimeBuilder.EnsureComponent<VerticalLayoutGroup>(content.gameObject);
-            layout.padding = new RectOffset(0, 0, 36, 40);
-            layout.spacing = 32f;
+            layout.padding = new RectOffset(0, 0, 28, 44);
+            layout.spacing = 24f;
             layout.childAlignment = TextAnchor.UpperLeft;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
@@ -215,6 +263,32 @@ public class HomeUIManager : MonoBehaviour
         JelliMetaUIRuntimeBuilder.ApplyProjectFonts(gameObject);
     }
 
+    private TextMeshProUGUI GetOrCreateHeaderLogo(Transform header)
+    {
+        if (header == null)
+            return null;
+
+        Transform existing = header.Find("Text_Logo");
+        TextMeshProUGUI logo = existing != null ? existing.GetComponent<TextMeshProUGUI>() : null;
+        if (logo != null)
+            return logo;
+
+        return JelliMetaUIRuntimeBuilder.CreateText(header, "Text_Logo", "JelliMeta", 40f, FontStyles.Normal, Color.black, TextAlignmentOptions.Left);
+    }
+
+    private void ForceWhiteBackground(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        Image image = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(target);
+        if (image == null)
+            return;
+
+        image.color = Color.white;
+        image.raycastTarget = false;
+    }
+
     private void NormalizeHeroBannerLayout()
     {
         Transform hero = transform.Find("MainScrollArea/Viewport/Content/HeroBennerArea");
@@ -222,26 +296,26 @@ public class HomeUIManager : MonoBehaviour
             return;
 
         LayoutElement heroLayout = JelliMetaUIRuntimeBuilder.EnsureComponent<LayoutElement>(hero.gameObject);
-        heroLayout.minHeight = 520f;
-        heroLayout.preferredHeight = 520f;
+        heroLayout.minHeight = 360f;
+        heroLayout.preferredHeight = 360f;
         heroLayout.flexibleHeight = 0f;
 
         Transform bannerBg = hero.Find("BannerBG");
         if (bannerBg != null)
         {
-            JelliMetaUIRuntimeBuilder.SetStretch(bannerBg as RectTransform, 32f, 32f, 0f, 0f);
+            JelliMetaUIRuntimeBuilder.SetStretch(bannerBg as RectTransform, 48f, 48f, 0f, 0f);
             Image bg = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(bannerBg.gameObject);
             bg.color = JelliMetaUIRuntimeBuilder.Color32(239, 246, 255);
         }
 
         if (bannerTitleText != null)
-            JelliMetaUIRuntimeBuilder.SetFixed(bannerTitleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(72f, 70f), new Vector2(520f, 160f));
+            JelliMetaUIRuntimeBuilder.SetFixed(bannerTitleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(88f, 52f), new Vector2(500f, 118f));
 
         if (bannerDetailButton != null)
-            JelliMetaUIRuntimeBuilder.SetFixed(bannerDetailButton.transform as RectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(72f, -100f), new Vector2(250f, 72f));
+            JelliMetaUIRuntimeBuilder.SetFixed(bannerDetailButton.transform as RectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(88f, -86f), new Vector2(230f, 62f));
 
         if (bannerThumbnailImage != null)
-            JelliMetaUIRuntimeBuilder.SetFixed(bannerThumbnailImage.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-72f, 0f), new Vector2(300f, 300f));
+            JelliMetaUIRuntimeBuilder.SetFixed(bannerThumbnailImage.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-88f, 0f), new Vector2(260f, 260f));
     }
 
     private void NormalizeCategoryMenuLayout()
@@ -251,8 +325,8 @@ public class HomeUIManager : MonoBehaviour
             return;
 
         LayoutElement layout = JelliMetaUIRuntimeBuilder.EnsureComponent<LayoutElement>(categoryMenu.gameObject);
-        layout.minHeight = 96f;
-        layout.preferredHeight = 96f;
+        layout.minHeight = 92f;
+        layout.preferredHeight = 92f;
         layout.flexibleHeight = 0f;
 
         ScrollRect scroll = categoryMenu.GetComponent<ScrollRect>();
@@ -276,13 +350,13 @@ public class HomeUIManager : MonoBehaviour
             contentRect.anchorMin = new Vector2(0f, 0.5f);
             contentRect.anchorMax = new Vector2(0f, 0.5f);
             contentRect.pivot = new Vector2(0f, 0.5f);
-            contentRect.anchoredPosition = new Vector2(32f, 0f);
+            contentRect.anchoredPosition = new Vector2(48f, 0f);
             contentRect.localScale = Vector3.one;
         }
 
         HorizontalLayoutGroup group = JelliMetaUIRuntimeBuilder.EnsureComponent<HorizontalLayoutGroup>(categoryContentParent.gameObject);
-        group.padding = new RectOffset(0, 32, 12, 12);
-        group.spacing = 18f;
+        group.padding = new RectOffset(0, 48, 10, 10);
+        group.spacing = 16f;
         group.childAlignment = TextAnchor.MiddleLeft;
         group.childControlWidth = true;
         group.childControlHeight = true;
@@ -300,8 +374,8 @@ public class HomeUIManager : MonoBehaviour
             return;
 
         GridLayoutGroup grid = JelliMetaUIRuntimeBuilder.EnsureComponent<GridLayoutGroup>(productGridParent.gameObject);
-        grid.padding = new RectOffset(32, 32, 0, 0);
-        grid.spacing = new Vector2(28f, 44f);
+        grid.padding = new RectOffset(48, 48, 0, 0);
+        grid.spacing = new Vector2(32f, 42f);
         grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         grid.constraintCount = 2;
         grid.childAlignment = TextAnchor.UpperLeft;
@@ -312,7 +386,7 @@ public class HomeUIManager : MonoBehaviour
             canvasWidth = parentRect.rect.width;
 
         float cellWidth = (canvasWidth - grid.padding.left - grid.padding.right - grid.spacing.x) / 2f;
-        float cellHeight = cellWidth + 132f;
+        float cellHeight = cellWidth + 124f;
         grid.cellSize = new Vector2(cellWidth, cellHeight);
 
         int rowCount = Mathf.Max(1, Mathf.CeilToInt(visibleCount / 2f));

@@ -108,7 +108,7 @@ public class JelliMetaUIManager : MonoBehaviour
             return;
 
         RectTransform rect = bottomNavBar.transform as RectTransform;
-        JelliMetaUIRuntimeBuilder.SetBottom(rect, 0f, 0f, 0f, 116f);
+        JelliMetaUIRuntimeBuilder.SetBottom(rect, 0f, 0f, 0f, 144f);
 
         Image bg = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(bottomNavBar);
         bg.color = Color.white;
@@ -118,7 +118,7 @@ public class JelliMetaUIManager : MonoBehaviour
         {
             GameObject container = new GameObject("RuntimeBottomNavigation", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             container.transform.SetParent(bottomNavBar.transform, false);
-            JelliMetaUIRuntimeBuilder.SetStretch(container.transform as RectTransform, 48f, 48f, 8f, 8f);
+            JelliMetaUIRuntimeBuilder.SetStretch(container.transform as RectTransform, 56f, 56f, 10f, 14f);
 
             HorizontalLayoutGroup group = container.GetComponent<HorizontalLayoutGroup>();
             group.childAlignment = TextAnchor.MiddleCenter;
@@ -126,7 +126,7 @@ public class JelliMetaUIManager : MonoBehaviour
             group.childControlHeight = true;
             group.childForceExpandWidth = true;
             group.childForceExpandHeight = true;
-            group.spacing = 12f;
+            group.spacing = 20f;
 
             CreateNavItem(container.transform, "홈", true);
             CreateNavItem(container.transform, "주문내역", false);
@@ -141,7 +141,7 @@ public class JelliMetaUIManager : MonoBehaviour
     {
         GameObject item = new GameObject(text, typeof(RectTransform));
         item.transform.SetParent(parent, false);
-        TextMeshProUGUI label = JelliMetaUIRuntimeBuilder.CreateText(item.transform, "Label", text, 24f, selected ? FontStyles.Bold : FontStyles.Normal,
+        TextMeshProUGUI label = JelliMetaUIRuntimeBuilder.CreateText(item.transform, "Label", text, 26f, selected ? FontStyles.Bold : FontStyles.Normal,
             selected ? JelliMetaUIRuntimeBuilder.Color32(17, 24, 39) : JelliMetaUIRuntimeBuilder.Color32(156, 163, 175), TextAlignmentOptions.Center);
         JelliMetaUIRuntimeBuilder.SetStretch(label.rectTransform, 0f, 0f, 0f, 0f);
     }
@@ -154,13 +154,15 @@ public class JelliMetaUIManager : MonoBehaviour
         RectTransform panelRect = arUIPanel.transform as RectTransform;
         JelliMetaUIRuntimeBuilder.SetStretch(panelRect, 0f, 0f, 0f, 0f);
 
-        Image panelBg = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(arUIPanel);
-        panelBg.color = JelliMetaUIRuntimeBuilder.Color32(31, 41, 55);
+        // AR 화면에서는 카메라 렌더링이 뒤에 보여야 하므로
+        // ARUIPanel 자체의 Image 배경은 끈다.
+        DisablePanelBlockingImage(arUIPanel);
 
         Transform existing = arUIPanel.transform.Find(RuntimeAROverlayName);
         if (existing == null)
             existing = BuildAROverlay();
 
+        RemoveCameraGuide(existing);
         UpdateAROverlay(existing, rowData);
         JelliMetaUIRuntimeBuilder.ApplyProjectFonts(arUIPanel);
     }
@@ -172,22 +174,14 @@ public class JelliMetaUIManager : MonoBehaviour
         JelliMetaUIRuntimeBuilder.SetStretch(overlay.transform as RectTransform, 0f, 0f, 0f, 0f);
         SetUILayerRecursive(overlay, arUIPanel.layer);
 
-        TextMeshProUGUI cameraGuide = JelliMetaUIRuntimeBuilder.CreateText(
-            overlay.transform,
-            "CameraGuide",
-            "AR Preview\n평평한 바닥을 비춰주세요",
-            32f,
-            FontStyles.Normal,
-            JelliMetaUIRuntimeBuilder.Color32(209, 213, 219),
-            TextAlignmentOptions.Center);
-        JelliMetaUIRuntimeBuilder.SetFixed(cameraGuide.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 180f));
-
-        Button backButton = JelliMetaUIRuntimeBuilder.CreateButton(overlay.transform, "BackButton", "뒤로", new Color(1f, 1f, 1f, 0.92f), Color.black, 26f);
-        JelliMetaUIRuntimeBuilder.SetFixed(backButton.transform as RectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(32f, -32f), new Vector2(132f, 76f));
+        Button backButton = JelliMetaUIRuntimeBuilder.CreateButton(overlay.transform, "BackButton", "뒤로", new Color(1f, 1f, 1f, 0.94f), JelliMetaUIRuntimeBuilder.Color32(17, 24, 39), 25f);
+        JelliMetaUIRuntimeBuilder.SetFixed(backButton.transform as RectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(44f, -44f), new Vector2(116f, 88f));
+        JelliMetaUIRuntimeBuilder.EnsureRoundedBackground(backButton.transform, "RuntimeRoundedButtonBackground", new Color(1f, 1f, 1f, 0.94f), 44f);
         backButton.onClick.AddListener(() => ShowProductDetailScreen(activeARProduct));
 
-        Button resetButton = JelliMetaUIRuntimeBuilder.CreateButton(overlay.transform, "ResetButton", "리셋", new Color(1f, 1f, 1f, 0.92f), Color.black, 26f);
-        JelliMetaUIRuntimeBuilder.SetFixed(resetButton.transform as RectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-32f, -32f), new Vector2(132f, 76f));
+        Button resetButton = JelliMetaUIRuntimeBuilder.CreateButton(overlay.transform, "ResetButton", "리셋", new Color(1f, 1f, 1f, 0.94f), JelliMetaUIRuntimeBuilder.Color32(17, 24, 39), 25f);
+        JelliMetaUIRuntimeBuilder.SetFixed(resetButton.transform as RectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-44f, -44f), new Vector2(116f, 88f));
+        JelliMetaUIRuntimeBuilder.EnsureRoundedBackground(resetButton.transform, "RuntimeRoundedButtonBackground", new Color(1f, 1f, 1f, 0.94f), 44f);
         resetButton.onClick.AddListener(() =>
         {
             if (arInteractionManager != null)
@@ -196,37 +190,64 @@ public class JelliMetaUIManager : MonoBehaviour
 
         GameObject sheet = new GameObject("BottomSheet", typeof(RectTransform), typeof(Image));
         sheet.transform.SetParent(overlay.transform, false);
-        JelliMetaUIRuntimeBuilder.SetBottom(sheet.transform as RectTransform, 32f, 32f, 48f, 300f);
+        JelliMetaUIRuntimeBuilder.SetBottom(sheet.transform as RectTransform, 44f, 44f, 56f, 248f);
         Image sheetBg = sheet.GetComponent<Image>();
-        sheetBg.color = Color.white;
+        sheetBg.sprite = JelliMetaUIRuntimeBuilder.SolidSprite;
+        sheetBg.color = new Color(1f, 1f, 1f, 0.001f);
+        sheetBg.raycastTarget = true;
+        JelliMetaUIRuntimeBuilder.EnsureRoundedBackground(sheet.transform, "RuntimeBottomSheetRoundedBackground", Color.white, 52f);
 
         Image thumb = new GameObject("Thumbnail", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
         thumb.transform.SetParent(sheet.transform, false);
-        JelliMetaUIRuntimeBuilder.SetFixed(thumb.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(32f, -32f), new Vector2(150f, 150f));
+        JelliMetaUIRuntimeBuilder.SetFixed(thumb.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(40f, -40f), new Vector2(144f, 144f));
         thumb.color = JelliMetaUIRuntimeBuilder.Color32(249, 250, 251);
-        thumb.preserveAspect = true;
+        thumb.preserveAspect = false;
 
-        TextMeshProUGUI productName = JelliMetaUIRuntimeBuilder.CreateText(sheet.transform, "ProductName", "", 32f, FontStyles.Bold, Color.black, TextAlignmentOptions.Left);
-        JelliMetaUIRuntimeBuilder.SetFixed(productName.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(210f, -34f), new Vector2(520f, 54f));
+        TextMeshProUGUI productName = JelliMetaUIRuntimeBuilder.CreateText(sheet.transform, "ProductName", "", 34f, FontStyles.Bold, Color.black, TextAlignmentOptions.Left);
+        JelliMetaUIRuntimeBuilder.SetFixed(productName.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(216f, -42f), new Vector2(500f, 84f));
 
-        TextMeshProUGUI productPrice = JelliMetaUIRuntimeBuilder.CreateText(sheet.transform, "ProductPrice", "", 28f, FontStyles.Normal, JelliMetaUIRuntimeBuilder.Color32(107, 114, 128), TextAlignmentOptions.Left);
-        JelliMetaUIRuntimeBuilder.SetFixed(productPrice.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(210f, -94f), new Vector2(520f, 48f));
+        TextMeshProUGUI productPrice = JelliMetaUIRuntimeBuilder.CreateText(sheet.transform, "ProductPrice", "", 30f, FontStyles.Normal, JelliMetaUIRuntimeBuilder.Color32(107, 114, 128), TextAlignmentOptions.Left);
+        JelliMetaUIRuntimeBuilder.SetFixed(productPrice.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(216f, -122f), new Vector2(500f, 48f));
 
-        Button captureButton = JelliMetaUIRuntimeBuilder.CreateButton(sheet.transform, "CaptureButton", "캡처", JelliMetaUIRuntimeBuilder.Color32(17, 24, 39), Color.white, 25f);
-        JelliMetaUIRuntimeBuilder.SetFixed(captureButton.transform as RectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-32f, -46f), new Vector2(150f, 120f));
+        Button captureButton = JelliMetaUIRuntimeBuilder.CreateButton(sheet.transform, "CaptureButton", "촬영", JelliMetaUIRuntimeBuilder.Color32(17, 24, 39), Color.white, 25f);
+        JelliMetaUIRuntimeBuilder.SetFixed(captureButton.transform as RectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-44f, -56f), new Vector2(132f, 132f));
+        JelliMetaUIRuntimeBuilder.EnsureRoundedBackground(captureButton.transform, "RuntimeRoundedButtonBackground", JelliMetaUIRuntimeBuilder.Color32(17, 24, 39), 66f);
         captureButton.onClick.AddListener(() => Debug.Log("[JelliMetaUIManager] 캡처 버튼 클릭"));
 
         TextMeshProUGUI guide = JelliMetaUIRuntimeBuilder.CreateText(
             sheet.transform,
             "Guide",
-            "Editor: 좌클릭 드래그 이동 / 우클릭 드래그 회전 / 휠 크기 조절",
-            24f,
+            "드래그 이동 / 우클릭 회전 / 휠 크기 조절",
+            23f,
             FontStyles.Normal,
-            JelliMetaUIRuntimeBuilder.Color32(75, 85, 99),
+            JelliMetaUIRuntimeBuilder.Color32(107, 114, 128),
             TextAlignmentOptions.Left);
-        JelliMetaUIRuntimeBuilder.SetBottom(guide.rectTransform, 32f, 32f, 24f, 72f);
+        JelliMetaUIRuntimeBuilder.SetBottom(guide.rectTransform, 40f, 210f, 24f, 44f);
 
         return overlay.transform;
+    }
+
+    private void DisablePanelBlockingImage(GameObject panel)
+    {
+        if (panel == null)
+            return;
+
+        Image panelImage = panel.GetComponent<Image>();
+        if (panelImage != null)
+        {
+            panelImage.enabled = false;
+            panelImage.raycastTarget = false;
+        }
+    }
+
+    private void RemoveCameraGuide(Transform overlay)
+    {
+        if (overlay == null)
+            return;
+
+        Transform cameraGuide = overlay.Find("CameraGuide");
+        if (cameraGuide != null)
+            Destroy(cameraGuide.gameObject);
     }
 
     private void UpdateAROverlay(Transform overlay, ProductData rowData)
@@ -238,7 +259,7 @@ public class JelliMetaUIManager : MonoBehaviour
         if (thumb != null)
         {
             thumb.sprite = rowData.productImage;
-            thumb.preserveAspect = true;
+            thumb.preserveAspect = false;
         }
 
         TextMeshProUGUI productName = overlay.Find("BottomSheet/ProductName")?.GetComponent<TextMeshProUGUI>();

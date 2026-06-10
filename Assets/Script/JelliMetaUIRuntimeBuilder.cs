@@ -246,6 +246,94 @@ public static class JelliMetaUIRuntimeBuilder
         label.raycastTarget = false;
     }
 
+
+    public static JelliMetaRoundedRectGraphic EnsureRoundedBackground(Transform parent, string name, Color color, float radius)
+    {
+        if (parent == null)
+            return null;
+
+        Transform existing = parent.Find(name);
+        JelliMetaRoundedRectGraphic graphic = null;
+
+        if (existing == null)
+        {
+            GameObject background = new GameObject(name, typeof(RectTransform), typeof(JelliMetaRoundedRectGraphic));
+            background.transform.SetParent(parent, false);
+            background.transform.SetAsFirstSibling();
+            existing = background.transform;
+        }
+        else
+        {
+            graphic = existing.GetComponent<JelliMetaRoundedRectGraphic>();
+            existing.SetAsFirstSibling();
+        }
+
+        RectTransform rect = existing as RectTransform;
+        SetStretch(rect, 0f, 0f, 0f, 0f);
+
+        if (graphic == null)
+            graphic = existing.GetComponent<JelliMetaRoundedRectGraphic>();
+
+        if (graphic != null)
+        {
+            graphic.color = color;
+            graphic.radius = radius;
+            graphic.raycastTarget = false;
+            graphic.SetAllDirty();
+        }
+
+        return graphic;
+    }
+
+    public static void MakeImageTransparentButRaycastable(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        Image image = target.GetComponent<Image>();
+        if (image == null)
+            image = target.AddComponent<Image>();
+
+        if (image.sprite == null)
+        {
+            image.sprite = SolidSprite;
+            image.type = Image.Type.Simple;
+        }
+
+        image.color = new Color(1f, 1f, 1f, 0.001f);
+        image.raycastTarget = true;
+    }
+
+    public static void ConfigureRoundedButton(Button button, string labelText, Color background, Color textColor, float fontSize, float radius)
+    {
+        if (button == null)
+            return;
+
+        MakeImageTransparentButRaycastable(button.gameObject);
+        EnsureRoundedBackground(button.transform, "RuntimeRoundedButtonBackground", background, radius);
+
+        button.transition = Selectable.Transition.None;
+        button.interactable = true;
+
+        TextMeshProUGUI label = button.transform.Find("RuntimeButtonLabel")?.GetComponent<TextMeshProUGUI>();
+        if (label == null)
+            label = CreateText(button.transform, "RuntimeButtonLabel", labelText, fontSize, FontStyles.Bold, textColor, TextAlignmentOptions.Center);
+
+        foreach (TextMeshProUGUI other in button.GetComponentsInChildren<TextMeshProUGUI>(true))
+        {
+            if (other != label)
+                other.gameObject.SetActive(false);
+        }
+
+        label.gameObject.SetActive(true);
+        label.transform.SetAsLastSibling();
+        SetStretch(label.rectTransform, 16f, 16f, 0f, 0f);
+        ConfigureText(label, labelText, fontSize, FontStyles.Bold, textColor, TextAlignmentOptions.Center);
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.overflowMode = TextOverflowModes.Overflow;
+        label.raycastTarget = false;
+    }
+
     public static Button CreateButton(Transform parent, string name, string labelText, Color background, Color textColor, float fontSize)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
@@ -254,12 +342,16 @@ public static class JelliMetaUIRuntimeBuilder
         Image image = go.GetComponent<Image>();
         image.sprite = SolidSprite;
         image.type = Image.Type.Simple;
-        image.color = background;
+        image.color = new Color(1f, 1f, 1f, 0.001f);
+        image.raycastTarget = true;
 
         Button button = go.GetComponent<Button>();
         button.targetGraphic = image;
+        button.transition = Selectable.Transition.None;
 
+        EnsureRoundedBackground(go.transform, "RuntimeRoundedButtonBackground", background, 32f);
         TextMeshProUGUI label = CreateText(go.transform, "Label", labelText, fontSize, FontStyles.Bold, textColor, TextAlignmentOptions.Center);
+        label.transform.SetAsLastSibling();
         SetStretch(label.rectTransform, 8f, 8f, 0f, 0f);
         return button;
     }

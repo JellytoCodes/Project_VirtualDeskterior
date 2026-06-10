@@ -24,7 +24,7 @@ public class ProductCardUI : MonoBehaviour
         if (productImage != null)
         {
             productImage.sprite = myRowData.productImage;
-            productImage.preserveAspect = true;
+            productImage.preserveAspect = false;
             productImage.color = Color.white;
         }
 
@@ -88,15 +88,17 @@ public class ProductCardUI : MonoBehaviour
         if (productImage != null)
         {
             RectTransform imageRect = productImage.rectTransform;
-            imageRect.anchorMin = new Vector2(0f, 1f);
+            // 카드 상단 정사각형 이미지 영역을 안정적으로 확보한다.
+            // 기존 sizeDelta.y = -150f 방식은 해상도/레이아웃 계산 순서에 따라 이미지 영역이 무너질 수 있었다.
+            imageRect.anchorMin = new Vector2(0f, 0f);
             imageRect.anchorMax = new Vector2(1f, 1f);
-            imageRect.pivot = new Vector2(0.5f, 1f);
-            imageRect.anchoredPosition = Vector2.zero;
-            imageRect.sizeDelta = new Vector2(0f, -150f);
+            imageRect.pivot = new Vector2(0.5f, 0.5f);
+            imageRect.offsetMin = new Vector2(0f, 124f);
+            imageRect.offsetMax = Vector2.zero;
             imageRect.localScale = Vector3.one;
 
             productImage.type = Image.Type.Simple;
-            productImage.preserveAspect = true;
+            productImage.preserveAspect = false;
         }
 
         if (productNameText != null)
@@ -105,8 +107,8 @@ public class ProductCardUI : MonoBehaviour
             nameRect.anchorMin = new Vector2(0f, 0f);
             nameRect.anchorMax = new Vector2(1f, 0f);
             nameRect.pivot = new Vector2(0.5f, 0f);
-            nameRect.anchoredPosition = new Vector2(0f, 72f);
-            nameRect.sizeDelta = new Vector2(0f, 64f);
+            nameRect.anchoredPosition = new Vector2(0f, 62f);
+            nameRect.sizeDelta = new Vector2(0f, 58f);
             nameRect.localScale = Vector3.one;
         }
 
@@ -117,7 +119,7 @@ public class ProductCardUI : MonoBehaviour
             priceRect.anchorMax = new Vector2(1f, 0f);
             priceRect.pivot = new Vector2(0.5f, 0f);
             priceRect.anchoredPosition = new Vector2(0f, 18f);
-            priceRect.sizeDelta = new Vector2(0f, 48f);
+            priceRect.sizeDelta = new Vector2(0f, 42f);
             priceRect.localScale = Vector3.one;
         }
     }

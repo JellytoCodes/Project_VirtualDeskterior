@@ -4,6 +4,8 @@ using TMPro;
 
 public class DetailUIManager : MonoBehaviour
 {
+    private static Sprite runtimeSolidButtonSprite;
+
     [Header("System Managers")]
     public JelliMetaUIManager mainUIManager;
 
@@ -31,6 +33,14 @@ public class DetailUIManager : MonoBehaviour
             SetupDetailPanel(mainUIManager.currentSelectedProduct);
         else
             Debug.LogError("[DetailUIManager] JelliMetaUIManager가 연결되지 않았습니다.");
+
+        ForceActionButtonLabelColors();
+    }
+
+    private void LateUpdate()
+    {
+        // RuntimeButtonLabel 색상이 다른 런타임 보정에 의해 다시 흰색으로 돌아가는 것을 방지한다.
+        ForceActionButtonLabelColors();
     }
 
     private void SetupDetailPanel(ProductData data)
@@ -89,16 +99,13 @@ public class DetailUIManager : MonoBehaviour
         RectTransform detailPanelRect = transform as RectTransform;
         JelliMetaUIRuntimeBuilder.SetStretch(detailPanelRect, 0f, 0f, 0f, 0f);
 
-        Image panelBg = GetComponent<Image>();
-        if (panelBg != null)
-            panelBg.color = Color.white;
+        ForceWhiteBackground(gameObject);
 
         Transform header = transform.Find("HeaderArea");
         if (header != null)
         {
             JelliMetaUIRuntimeBuilder.SetTop(header as RectTransform, 0f, 0f, 0f, 108f);
-            Image headerBg = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(header.gameObject);
-            headerBg.color = Color.white;
+            ForceWhiteBackground(header.gameObject);
         }
 
         if (backButton != null)
@@ -111,8 +118,7 @@ public class DetailUIManager : MonoBehaviour
         if (bottom != null)
         {
             JelliMetaUIRuntimeBuilder.SetBottom(bottom as RectTransform, 0f, 0f, 0f, 270f);
-            Image bottomBg = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(bottom.gameObject);
-            bottomBg.color = Color.white;
+            ForceWhiteBackground(bottom.gameObject);
         }
 
         ApplyActionButtonVisuals();
@@ -126,15 +132,27 @@ public class DetailUIManager : MonoBehaviour
 
         Transform middle = transform.Find("MiddleScrollArea");
         if (middle != null)
+        {
             JelliMetaUIRuntimeBuilder.SetStretch(middle as RectTransform, 0f, 0f, 108f, 270f);
+            ForceWhiteBackground(middle.gameObject);
+        }
 
         Transform scrollView = transform.Find("MiddleScrollArea/DetailScrollView");
         if (scrollView != null)
+        {
             JelliMetaUIRuntimeBuilder.SetStretch(scrollView as RectTransform, 0f, 0f, 0f, 0f);
+            ForceWhiteBackground(scrollView.gameObject);
+        }
+
+        Transform viewport = transform.Find("MiddleScrollArea/DetailScrollView/Viewport");
+        if (viewport != null)
+            ForceWhiteBackground(viewport.gameObject);
 
         Transform content = transform.Find("MiddleScrollArea/DetailScrollView/Viewport/Content");
         if (content != null)
         {
+            ForceWhiteBackground(content.gameObject);
+
             VerticalLayoutGroup contentLayout = JelliMetaUIRuntimeBuilder.EnsureComponent<VerticalLayoutGroup>(content.gameObject);
             contentLayout.padding = new RectOffset(0, 0, 0, 32);
             contentLayout.spacing = 36f;
@@ -155,8 +173,8 @@ public class DetailUIManager : MonoBehaviour
             detailProductImage.preserveAspect = true;
 
             LayoutElement imageLayout = JelliMetaUIRuntimeBuilder.EnsureComponent<LayoutElement>(detailProductImage.gameObject);
-            imageLayout.minHeight = 780f;
-            imageLayout.preferredHeight = 920f;
+            imageLayout.minHeight = 700f;
+            imageLayout.preferredHeight = 760f;
             imageLayout.flexibleHeight = 0f;
         }
 
@@ -199,8 +217,8 @@ public class DetailUIManager : MonoBehaviour
             EnsureButtonVisual(
                 openARButton,
                 "내 공간에서 보기 (AR)",
+                JelliMetaUIRuntimeBuilder.Color32(243, 244, 246),
                 JelliMetaUIRuntimeBuilder.Color32(17, 24, 39),
-                Color.white,
                 32f,
                 TextAlignmentOptions.Center,
                 24f, 24f, 0f, 0f
@@ -223,110 +241,141 @@ public class DetailUIManager : MonoBehaviour
         }
     }
 
+    private void ForceActionButtonLabelColors()
+    {
+        Color labelColor = JelliMetaUIRuntimeBuilder.Color32(17, 24, 39);
+
+        if (openARButton != null)
+            ForceRuntimeButtonLabelColor(openARButton, labelColor);
+
+        Button cartButton = transform.Find("BottomActionArea/CartButton")?.GetComponent<Button>();
+        if (cartButton != null)
+            ForceRuntimeButtonLabelColor(cartButton, labelColor);
+    }
+
+    private void ForceRuntimeButtonLabelColor(Button button, Color color)
+    {
+        if (button == null)
+            return;
+
+        Transform labelTransform = button.transform.Find("RuntimeButtonLabel");
+        if (labelTransform == null)
+            return;
+
+        TextMeshProUGUI label = labelTransform.GetComponent<TextMeshProUGUI>();
+        if (label == null)
+            return;
+
+        label.color = color;
+        label.alpha = 1f;
+        label.canvasRenderer.SetAlpha(1f);
+        label.SetAllDirty();
+    }
+
+    private void ForceWhiteBackground(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        Image image = JelliMetaUIRuntimeBuilder.EnsureComponent<Image>(target);
+        if (image == null)
+            return;
+
+        image.color = Color.white;
+        image.raycastTarget = false;
+    }
+
     private void EnsureButtonVisual(Button button, string labelText, Color backgroundColor, Color textColor, float fontSize, TextAlignmentOptions alignment, float leftPadding, float rightPadding, float topPadding, float bottomPadding)
     {
         if (button == null)
             return;
 
-        Graphic backgroundGraphic = ConfigureButtonBackground(button, backgroundColor);
-        button.targetGraphic = backgroundGraphic;
-        ApplyButtonColorBlock(button, backgroundColor);
+        ConfigureButtonBackground(button, backgroundColor);
+        EnsureRuntimeButtonLabel(button, labelText, textColor, fontSize, alignment, leftPadding, rightPadding, topPadding, bottomPadding);
+    }
 
-        TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>(true);
-        if (label == null)
+    private void ConfigureButtonBackground(Button button, Color backgroundColor)
+    {
+        if (button == null)
+            return;
+
+        Image image = button.GetComponent<Image>();
+        if (image == null)
+            image = button.gameObject.AddComponent<Image>();
+
+        // 클릭 판정은 Image의 raycastTarget에 맡기고, Button ColorTint가 색을 다시 덮어쓰지 않도록 Transition을 끈다.
+        // Scene View의 빨간 X는 Gizmo 표시였으므로 여기서 Graphic 교체/커스텀 Graphic 추가는 하지 않는다.
+        if (image.sprite == null)
         {
-            Transform existingText = button.transform.Find("Text");
-            if (existingText != null)
-                existingText.gameObject.SetActive(false);
-
-            label = JelliMetaUIRuntimeBuilder.CreateText(button.transform, "RuntimeButtonLabel", labelText, fontSize, FontStyles.Bold, textColor, alignment);
+            image.sprite = JelliMetaUIRuntimeBuilder.SolidSprite;
+            image.type = Image.Type.Simple;
         }
 
-        label.gameObject.SetActive(true);
-        label.transform.SetAsLastSibling();
-        JelliMetaUIRuntimeBuilder.ConfigureText(label, labelText, fontSize, FontStyles.Bold, textColor, alignment);
-        label.color = textColor;
+        image.enabled = true;
+        image.color = backgroundColor;
+        image.raycastTarget = true;
 
-        RectTransform labelRect = label.rectTransform;
+        button.targetGraphic = image;
+        button.transition = Selectable.Transition.None;
+        button.interactable = true;
+    }
+
+    private void EnsureRuntimeButtonLabel(Button button, string labelText, Color textColor, float fontSize, TextAlignmentOptions alignment, float leftPadding, float rightPadding, float topPadding, float bottomPadding)
+    {
+        if (button == null)
+            return;
+
+        TextMeshProUGUI runtimeLabel = null;
+        Transform runtimeLabelTransform = button.transform.Find("RuntimeButtonLabel");
+        if (runtimeLabelTransform != null)
+            runtimeLabel = runtimeLabelTransform.GetComponent<TextMeshProUGUI>();
+
+        if (runtimeLabel == null)
+        {
+            GameObject labelObject = new GameObject("RuntimeButtonLabel", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
+            labelObject.transform.SetParent(button.transform, false);
+            runtimeLabel = labelObject.GetComponent<TextMeshProUGUI>();
+        }
+
+        // 기존 버튼 안에 있던 Text/TMP가 흰색/잘못된 RectTransform으로 남아 있으면 새 라벨과 충돌한다.
+        foreach (TextMeshProUGUI label in button.GetComponentsInChildren<TextMeshProUGUI>(true))
+        {
+            if (label != runtimeLabel)
+                label.gameObject.SetActive(false);
+        }
+
+        foreach (UnityEngine.UI.Text legacyText in button.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+            legacyText.gameObject.SetActive(false);
+
+        runtimeLabel.gameObject.SetActive(true);
+        runtimeLabel.enabled = true;
+        runtimeLabel.transform.SetAsLastSibling();
+
+        RectTransform labelRect = runtimeLabel.rectTransform;
         JelliMetaUIRuntimeBuilder.SetStretch(labelRect, leftPadding, rightPadding, topPadding, bottomPadding);
+        labelRect.localScale = Vector3.one;
 
-        LayoutElement labelLayout = label.GetComponent<LayoutElement>();
-        if (labelLayout != null)
-            Destroy(labelLayout);
-    }
+        LayoutElement layoutElement = runtimeLabel.GetComponent<LayoutElement>();
+        if (layoutElement != null)
+            layoutElement.ignoreLayout = true;
 
+        JelliMetaUIRuntimeBuilder.ConfigureText(runtimeLabel, labelText, fontSize, FontStyles.Bold, textColor, alignment);
+        runtimeLabel.text = labelText;
+        runtimeLabel.color = textColor;
+        runtimeLabel.alpha = 1f;
+        runtimeLabel.fontSize = fontSize;
+        runtimeLabel.fontStyle = FontStyles.Bold;
+        runtimeLabel.alignment = alignment;
+        runtimeLabel.textWrappingMode = TextWrappingModes.NoWrap;
+        runtimeLabel.overflowMode = TextOverflowModes.Overflow;
+        runtimeLabel.raycastTarget = false;
+        runtimeLabel.enableAutoSizing = false;
+        runtimeLabel.canvasRenderer.SetAlpha(1f);
+        runtimeLabel.SetAllDirty();
 
-    private Graphic ConfigureButtonBackground(Button button, Color backgroundColor)
-    {
-        if (button == null)
-            return null;
-
-        // 기존 Image에 Source Image가 비어 있으면 Scene View에서 빨간 X가 크게 보인다.
-        // 버튼 배경은 Sprite 기반 Image 대신 직접 사각형을 그리는 Graphic으로 처리한다.
-        Image legacyImage = button.GetComponent<Image>();
-        if (legacyImage != null)
-            legacyImage.enabled = false;
-
-        if (backgroundColor.a <= 0.01f)
-        {
-            button.transition = Selectable.Transition.None;
-            return null;
-        }
-
-        JelliMetaSolidGraphic solidGraphic = button.GetComponent<JelliMetaSolidGraphic>();
-        if (solidGraphic == null)
-            solidGraphic = button.gameObject.AddComponent<JelliMetaSolidGraphic>();
-
-        solidGraphic.enabled = true;
-        solidGraphic.color = backgroundColor;
-        solidGraphic.raycastTarget = true;
-        return solidGraphic;
-    }
-
-    private void ApplyButtonColorBlock(Button button, Color backgroundColor)
-    {
-        if (button == null)
-            return;
-
-        // Unity Button의 ColorTint가 Play 진입 시 targetGraphic.color를 normalColor로 덮어쓴다.
-        // 기본 normalColor가 white면 AR 버튼 배경이 흰색으로 돌아가고, 흰색 글자가 안 보인다.
-        if (backgroundColor.a <= 0.01f)
-        {
-            button.transition = Selectable.Transition.None;
-            return;
-        }
-
-        button.transition = Selectable.Transition.ColorTint;
-
-        ColorBlock colors = button.colors;
-        colors.normalColor = backgroundColor;
-        colors.selectedColor = backgroundColor;
-        colors.highlightedColor = Lighten(backgroundColor, 0.08f);
-        colors.pressedColor = Darken(backgroundColor, 0.10f);
-        colors.disabledColor = new Color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.45f);
-        colors.colorMultiplier = 1f;
-        colors.fadeDuration = 0.08f;
-        button.colors = colors;
-    }
-
-    private Color Lighten(Color color, float amount)
-    {
-        return new Color(
-            Mathf.Clamp01(color.r + amount),
-            Mathf.Clamp01(color.g + amount),
-            Mathf.Clamp01(color.b + amount),
-            color.a
-        );
-    }
-
-    private Color Darken(Color color, float amount)
-    {
-        return new Color(
-            Mathf.Clamp01(color.r - amount),
-            Mathf.Clamp01(color.g - amount),
-            Mathf.Clamp01(color.b - amount),
-            color.a
-        );
+        RectTransform buttonRect = button.transform as RectTransform;
+        if (buttonRect != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(buttonRect);
     }
 
     private void EnsureMetaTextObjects()
